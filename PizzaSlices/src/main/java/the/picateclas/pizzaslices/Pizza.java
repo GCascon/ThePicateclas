@@ -1,6 +1,5 @@
 package the.picateclas.pizzaslices;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,39 +8,44 @@ import java.util.StringTokenizer;
 public class Pizza {
 
     private Cell[][] cells;
+
     private int rows;
+
     private int columns;
+
     private int minIngredientsPerSlice;
+
     private int maxCellsPerSlice;
-    private Map<String,List<Cell>> ingredientMap;
+
+    private int minCellsPerSlice;
+
+    private Map<String, Integer> ingredientMap;
 
     public Pizza(List<String> lines) {
         int count = 0;
-        for (String line : lines) {            
+        for (String line : lines) {
             if (count == 0) {
-                StringTokenizer st = new StringTokenizer(line);                
+                StringTokenizer st = new StringTokenizer(line);
                 rows = Integer.parseInt(st.nextToken());
                 columns = Integer.parseInt(st.nextToken());
                 cells = new Cell[rows][columns];
                 minIngredientsPerSlice = Integer.parseInt(st.nextToken());
+                minCellsPerSlice = minIngredientsPerSlice * 2;
                 maxCellsPerSlice = Integer.parseInt(st.nextToken());
-                ingredientMap=new HashMap<>();
-            } else {                
+                ingredientMap = new HashMap<>();
+            } else {
                 for (int i = 0; i < columns; i++) {
-                    Cell cell=new Cell(String.valueOf(line.charAt(i)));
-                    cells[count-1][i]=cell;
-                    List<Cell> ingredientList=ingredientMap.get(cell.getIngredient());
-                    if(ingredientList==null){
-                        ingredientList=new ArrayList<>();
-                        ingredientList.add(cell);
-                        ingredientMap.put(cell.getIngredient(), ingredientList);
-                    }else{
-                        ingredientList.add(cell);
-                        ingredientMap.put(cell.getIngredient(), ingredientList);
+                    Cell cell = new Cell(String.valueOf(line.charAt(i)));
+                    cells[count - 1][i] = cell;
+                    Integer numberOfElements = ingredientMap.get(cell.getIngredient());
+                    if (numberOfElements == null) {
+                        ingredientMap.put(cell.getIngredient(), 1);
+                    } else {
+                        ingredientMap.put(cell.getIngredient(), numberOfElements + 1);
                     }
                 }
             }
-            count++; 
+            count++;
         }
     }
 
@@ -85,29 +89,33 @@ public class Pizza {
         this.maxCellsPerSlice = maxCellsPerSlice;
     }
 
-    public Map<String, List<Cell>> getIngredientMap() {
+    public Map<String, Integer> getIngredientMap() {
         return ingredientMap;
     }
 
-    public void setIngredientMap(Map<String, List<Cell>> ingredientMap) {
+    public void setIngredientMap(Map<String, Integer> ingredientMap) {
         this.ingredientMap = ingredientMap;
     }
-    
+
+    public int getMinCellsPerSlice() {
+        return minCellsPerSlice;
+    }
+
+    public void setMinCellsPerSlice(int minCellsPerSlice) {
+        this.minCellsPerSlice = minCellsPerSlice;
+    }
 
     @Override
     public String toString() {
-        String cellsToString="\n";
-        for(int i=0;i<rows;i++){
-            for(int j=0;j<columns;j++){
-                cellsToString+=cells[i][j];
+        String cellsToString = "\n";
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                cellsToString += cells[i][j];
             }
-            cellsToString+="\n";
+            cellsToString += "\n";
         }
-        return "Pizza{" + "cells=" + cellsToString + ", rows=" + rows + ", columns=" + columns + ", minIngredientsPerSlice=" + minIngredientsPerSlice + ", maxCellsPerSlice=" + maxCellsPerSlice + '}';
+        return "Pizza{" + "cells=" + cellsToString + ", rows=" + rows + ", columns=" + columns + ", minIngredientsPerSlice="
+                + minIngredientsPerSlice + ", maxCellsPerSlice=" + maxCellsPerSlice + '}';
     }
-    
-    
+
 }
-
-
-
