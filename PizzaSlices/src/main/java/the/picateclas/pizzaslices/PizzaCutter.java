@@ -52,6 +52,11 @@ public class PizzaCutter {
             
             if(s.getLevel()<(bigSlices+smallSlices)) {
             	undoSlice(pizza,resultStack.pop());
+            	if(pizza.getMaxCellsPerSlice()==s.getRows()*s.getColumns()){
+                    bigSlices--;
+                }else{
+                    smallSlices--;
+                }
             }
             
             tempCol=actualCol;
