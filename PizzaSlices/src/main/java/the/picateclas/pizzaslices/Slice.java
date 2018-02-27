@@ -1,40 +1,46 @@
 package the.picateclas.pizzaslices;
 
+public class Slice {
 
-public class Slice {    
     int rows;
+
     int columns;
+
     int r1;
+
     int c1;
+
     int r2;
+
     int c2;
-    
+
     int level;
-    
-    public Slice(){}
+
+    public Slice() {
+    }
 
     public Slice(int rows, int columns, int level) {
         this.rows = rows;
         this.columns = columns;
-        this.level= level;
+        this.level = level;
     }
-    
+
     public Slice(int r1, int c1, int r2, int c2) {
         this.r1 = r1;
         this.c1 = c1;
         this.r2 = r2;
         this.c2 = c2;
-    }    
-    
-    public Slice(int rows, int columns, int r1, int c1, int r2, int c2) {
-        this.rows=rows;
-        this.columns=columns;
+    }
+
+    public Slice(int rows, int columns, int r1, int c1, int r2, int c2, int level) {
+        this.rows = rows;
+        this.columns = columns;
         this.r1 = r1;
         this.c1 = c1;
         this.r2 = r2;
         this.c2 = c2;
+        this.level = level;
     }
-      
 
     public int getR1() {
         return r1;
@@ -85,19 +91,16 @@ public class Slice {
     }
 
     public int getLevel() {
-		return level;
-	}
+        return level;
+    }
 
-	public void setLevel(int level) {
-		this.level = level;
-	}
+    public void setLevel(int level) {
+        this.level = level;
+    }
 
-	public String toLine() {
-        StringBuilder sb=new StringBuilder();        
+    public String toLine() {
+        StringBuilder sb = new StringBuilder();
         return sb.append(r1).append(c1).append(r2).append(c2).toString();
     }
 
-    
-
-    
 }
