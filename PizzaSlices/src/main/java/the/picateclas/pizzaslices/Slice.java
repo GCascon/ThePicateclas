@@ -13,9 +13,10 @@ public class Slice {
     
     public Slice(){}
 
-    public Slice(int rows, int columns) {
+    public Slice(int rows, int columns, int level) {
         this.rows = rows;
         this.columns = columns;
+        this.level= level;
     }
     
     public Slice(int r1, int c1, int r2, int c2) {
@@ -82,13 +83,16 @@ public class Slice {
     public void setColumns(int columns) {
         this.columns = columns;
     }
-    
-    
-    
-    
-    
 
-    public String toLine() {
+    public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	public String toLine() {
         StringBuilder sb=new StringBuilder();        
         return sb.append(r1).append(c1).append(r2).append(c2).toString();
     }

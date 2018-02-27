@@ -10,8 +10,11 @@ import java.util.Stack;
 import the.picateclas.util.FactoresPrimos;
 
 public class PizzaCutter {
+	Integer actualRow=0;
+    Integer actualCol=0;
+    
     public List<Slice> cutPizza(Pizza pizza){
-        List<Slice> slices=new ArrayList<>();
+        
                 
         //1-Calcular numero de porciones: (int)(R*C/H) [+ 1 (si resto > 0)]
         int numSlices=pizza.getRows()*pizza.getColumns()/pizza.getMaxCellsPerSlice();
@@ -29,51 +32,112 @@ public class PizzaCutter {
         }                
         
         //3-Calcular slices posibles
-        List<Slice> possibilities=getPossibleSlices(pizza, mod);
-        int actualRow=0;
-        int actualCol=0;
+        List<Slice> possibilities=getPossibleSlices(pizza, mod, 0);
+        
         int bigSlices=0;
         int smallSlices=0;
+        int maxArea=0;
+        int tempRow=0;
+        int tempCol=0;
         
+        Stack<Slice> bestStack=null;
+        Stack<Slice> resultStack=new Stack<>();
         Stack<Slice> slicesStack=new Stack<>();
         slicesStack.addAll(possibilities);
         
         //4-Iterar hasta obtener solucion ideal o fin de posibilidades (Backtrack. Stack de slices)        
-        while(!(bigSlices==numSlices && smallSlices==smallSlicesCount) &&
+        while(!(maxArea==pizza.getRows()*pizza.getColumns()) &&
                 !slicesStack.isEmpty()){
             Slice s=slicesStack.pop();
-                        
-            s.setR1(actualRow);
-            s.setC1(actualCol);
-            s.setR2(actualRow+(s.getRows()-1));
-            s.setC2(actualCol+(s.getColumns()-1));
             
-            if(allowedSlice(pizza,s)){
-                //Reservar celdas    
-                cutSlice(pizza,s);
-                
-                //Incrementar contadores
-                moveCursor(pizza ,s , actualRow, actualCol);
-                
-                if(pizza.getMaxCellsPerSlice()==s.getRows()*s.getColumns()){
-                    bigSlices++;
-                }else{
-                    smallSlices++;
-                }
-                slices.add(s);
+            if(s.getLevel()<(bigSlices+smallSlices)) {
+            	undoSlice(pizza,resultStack.pop());
             }
-        }
+            
+            tempCol=actualCol;
+            tempRow=actualRow;
+            if (moveCursor(pizza ,s)) {
+            	s.setR1(actualRow);
+                s.setC1(actualCol);
+                s.setR2(actualRow+(s.getRows()-1));
+                s.setC2(actualCol+(s.getColumns()-1));
+                
+                if(allowedSlice(pizza,s)){
+                    //Reservar celdas    
+                    cutSlice(pizza,s);
+                    
+                    //Actualizar contadores
+                    if(pizza.getMaxCellsPerSlice()==s.getRows()*s.getColumns()){
+                        bigSlices++;
+                    }else{
+                        smallSlices++;
+                    }
+                    
+                    //Meter slice en el resultStack
+                    resultStack.push(s);
+                    
+                    //Meter siguiente nivel en slicesStack
+                    List<Slice> possibilitiesNext=getPossibleSlices(pizza, mod, bigSlices+smallSlices);
+                    for(Slice sn: possibilitiesNext) {
+                    	slicesStack.push(sn);
+                    }
+                    
+                    
+                    //Comprobar si la suma de areas del resultStack, es la mayor encontrada hasta el momento, si lo es 
+                    //guardo una foto del stack actual
+                    int resultStackArea=getArea(resultStack);
+                    if(resultStackArea > maxArea) {
+                    	maxArea=resultStackArea;
+                    	bestStack=resultStack;                	
+                    }
+                }else {
+                	//Deshacer movimiento de cursor
+                	actualCol=tempCol;
+                    actualRow=tempRow;
+                }
+            }    
+        }        
         
         //Ejemplo.....
+        /*List<Slice> slices=new ArrayList<>();
         slices.add(new Slice(3,2,0,0,2,1));
         slices.add(new Slice(3,1,0,2,2,2));
         slices.add(new Slice(3,2,0,3,2,4));
-        return slices;
+        return slices;*/
+        
+        if(bestStack==null) {//SIN SOLUCION!!!!
+        	System.out.println("No solution found!!! :(");
+        	return new ArrayList<Slice>();
+        }
+        
+        return new ArrayList<Slice>(bestStack);
     }
     
-    private void moveCursor(Pizza pizza, Slice slice, int actualRow, int actualCol){
-        //Mover en horizontal
-        actualCol+=slice.getColumns();
+    private int getArea(Stack<Slice> stack) {
+    	int area=0;
+    	for(Slice s: stack) {
+    		area+=s.getRows()*s.getColumns();
+    	}
+    	return area;
+    }
+    
+    private boolean moveCursor(Pizza pizza, Slice slice){
+    	Cell[][] cells=pizza.getCells();
+    	
+        //Mover en horizontal y si llego al limite lo pongo debajo
+    	if(actualCol+slice.getColumns()<=pizza.getColumns()) {
+    		actualCol+=(slice.getColumns()-1);
+    		return true;
+    	}else {    		
+    		for(int i=0;i<pizza.getRows();i++) {
+    			if(cells[i][0].isReserved()==false) {
+    				actualCol=0;
+    				actualRow=i;
+    				return true;
+    			}
+    		}
+    	}
+    	return false;        
     }
     
      
@@ -116,7 +180,7 @@ public class PizzaCutter {
     private void cutSlice(Pizza pizza, Slice slice){
         Cell[][] cells=pizza.getCells();
         for(int i=slice.getR1();i<=slice.getR2();i++){
-            for(int j=slice.getC1();j<=slice.getR2();j++){
+            for(int j=slice.getC1();j<=slice.getC2();j++){
                 cells[i][j].setReserved(true);
             }
         }
@@ -124,47 +188,49 @@ public class PizzaCutter {
     
     private void undoSlice(Pizza pizza, Slice slice){
         Cell[][] cells=pizza.getCells();
+        actualRow=slice.getR1();
+        actualCol=slice.getC1();
         for(int i=slice.getR1();i<=slice.getR2();i++){
-            for(int j=slice.getC1();j<=slice.getR2();j++){
+            for(int j=slice.getC1();j<=slice.getC2();j++){
                 cells[i][j].setReserved(false);
             }
         }
     }
     
-    private List<Slice> getPossibleSlices(Pizza pizza, int mod){
+    private List<Slice> getPossibleSlices(Pizza pizza, int mod, int level){
         List<Slice> result=new ArrayList<>();        
         LinkedList<Integer> bigFactor = FactoresPrimos.descomponEnFactoresPrimos(pizza.getMaxCellsPerSlice()); 
-        result.addAll(getSlicesFromFactors(pizza,bigFactor));
+        result.addAll(getSlicesFromFactors(pizza,bigFactor,level));
         if(mod!=0){
             LinkedList<Integer> smallFactor = FactoresPrimos.descomponEnFactoresPrimos(mod);
-            result.addAll(getSlicesFromFactors(pizza,smallFactor));
+            result.addAll(getSlicesFromFactors(pizza,smallFactor,level));
         }
         return result;
     }
     
-    private List<Slice> getSlicesFromFactors(Pizza pizza, List<Integer> factors){
+    private List<Slice> getSlicesFromFactors(Pizza pizza, List<Integer> factors, int level){
         Map<String, Slice> slices=new HashMap<>();
         
         for(int i=0;i<factors.size();i++){
             int r1=productoAnteriores(i,factors);
             int c1=productoSiguientes(i,factors);
-            if(r1<pizza.getRows() && c1<pizza.getColumns()){                
+            if(r1<=pizza.getRows() && c1<=pizza.getColumns()){                
                 String key=r1+","+c1;
                 if(!slices.containsKey(key)){                    
-                    slices.put(key, new Slice(r1,c1));
+                    slices.put(key, new Slice(r1,c1,level));
                 }
             }                  
             
             int r2=c1;
             int c2=r1;
-            if(r2<pizza.getRows() && c2<pizza.getColumns()){                
+            if(r2<=pizza.getRows() && c2<=pizza.getColumns()){                
                 String key=r2+","+c2;
                 if(!slices.containsKey(key)){
-                    slices.put(key, new Slice(r2,c2));
+                    slices.put(key, new Slice(r2,c2,level));
                 }
             }  
         }
-        return new ArrayList(slices.values());
+        return new ArrayList<Slice>(slices.values());
     }
     
     private int productoAnteriores(int p, List<Integer> lista){
