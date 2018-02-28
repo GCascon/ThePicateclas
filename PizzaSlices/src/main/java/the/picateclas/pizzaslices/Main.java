@@ -32,8 +32,11 @@ public class Main {
         System.out.println("Processing Data...");
         
         Pizza p=new Pizza(lines);
-        System.out.println(p);
+        //System.out.println(p);
+        System.out.println("Pizza loaded");
         PizzaCutter pizzaCutter=new PizzaCutter();
+        
+        System.out.println("Cutting pizza...");
         List<Slice> slices=pizzaCutter.cutPizza(p);
         
         List<String> result=new ArrayList<>();

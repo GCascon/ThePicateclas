@@ -14,7 +14,7 @@ public class PizzaSlicesTest {
     }
 
     @Test
-    public void exampleTest() throws IOException {
+    public void exampleTest() throws IOException { 
         Main.main(new String[] { "example.in" });
         File output = new File("example.out");
         Assert.assertTrue(output.exists());
