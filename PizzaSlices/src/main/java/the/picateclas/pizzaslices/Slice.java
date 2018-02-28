@@ -1,6 +1,6 @@
 package the.picateclas.pizzaslices;
 
-public class Slice implements Comparable{
+public class Slice implements Comparable {
 
     int rows;
 
@@ -103,22 +103,20 @@ public class Slice implements Comparable{
         return sb.append(r1).append(c1).append(r2).append(c2).toString();
     }
 
-	@Override
-	public int compareTo(Object o) {
-		Slice s=(Slice)o;		
-		//Bigger to Slower
-		//return (s.getRows()*s.getColumns())-(this.getRows()*this.getColumns());
-		
-		//Slower to Bigger
-		return (s.getRows()*s.getColumns())-(this.getRows()*this.getColumns());
-	}
+    @Override
+    public int compareTo(Object o) {
+        Slice s = (Slice) o;
+        // Bigger to Slower
+        return (s.getRows() * s.getColumns()) - (this.getRows() * this.getColumns());
 
-	@Override
-	public String toString() {
-		return "Slice [rows=" + rows + ", columns=" + columns + ", r1=" + r1 + ", c1=" + c1 + ", r2=" + r2 + ", c2="
-				+ c2 + ", level=" + level + "]";
-	}
-	
-	
+        // Slower to Bigger
+        // return (s.getRows()*s.getColumns())-(this.getRows()*this.getColumns());
+    }
+
+    @Override
+    public String toString() {
+        return "Slice [rows=" + rows + ", columns=" + columns + ", r1=" + r1 + ", c1=" + c1 + ", r2=" + r2 + ", c2=" + c2 + ", level="
+                + level + "]";
+    }
 
 }
