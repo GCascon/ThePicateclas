@@ -100,7 +100,7 @@ public class Slice implements Comparable {
 
     public String toLine() {
         StringBuilder sb = new StringBuilder();
-        return sb.append(r1).append(c1).append(r2).append(c2).toString();
+        return sb.append(r1).append(" ").append(c1).append(" ").append(r2).append(" ").append(c2).append(" ").toString();
     }
 
     @Override
