@@ -21,7 +21,10 @@ public class Pizza {
 
     private Map<String, Integer> ingredientMap;
 
+    private long cuttedCells;
+
     public Pizza(List<String> lines) {
+        long cuttedCells = 0;
         int count = 0;
         for (String line : lines) {
             if (count == 0) {
@@ -103,6 +106,14 @@ public class Pizza {
 
     public void setMinCellsPerSlice(int minCellsPerSlice) {
         this.minCellsPerSlice = minCellsPerSlice;
+    }
+
+    public long getCuttedCells() {
+        return cuttedCells;
+    }
+
+    public void setCuttedCells(long cuttedCells) {
+        this.cuttedCells = cuttedCells;
     }
 
     @Override
