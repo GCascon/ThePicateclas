@@ -10,7 +10,7 @@ import the.picateclas.pizzaslices.Main;
 
 public class PizzaSlicesTest {
 
-    String timeout = "1200";
+    String timeout = "1200";// seconds
 
     public PizzaSlicesTest() {
     }

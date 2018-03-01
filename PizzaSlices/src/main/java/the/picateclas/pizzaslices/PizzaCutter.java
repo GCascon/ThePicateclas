@@ -19,6 +19,10 @@ public class PizzaCutter {
 
     int lastCol = 0;
 
+    boolean reverse = false;
+
+    float cuttedArea = 0;
+
     long tiempoInicial = System.currentTimeMillis();
 
     long ultimoTiempo = System.currentTimeMillis();
@@ -29,7 +33,7 @@ public class PizzaCutter {
             ultimoTiempo = System.currentTimeMillis();
             StringBuilder sb = new StringBuilder();
             sb.append("Time: ").append((tiempoActual - tiempoInicial) / 1000).append(" s, MaxAreaFound: ").append(maxArea)
-                    .append(", Actual Level: ").append(numSlices);
+                    .append(", CuttedArea:").append(cuttedArea).append(", Actual Level: ").append(numSlices);
             System.out.println(sb.toString());
         }
     }
@@ -49,7 +53,7 @@ public class PizzaCutter {
 
         // 4-Iterar hasta obtener solucion ideal o fin de posibilidades (Backtrack. Stack de slices)
         while (!(maxArea == pizza.getRows() * pizza.getColumns()) && !slicesStack.isEmpty()
-                && !(System.currentTimeMillis() - ultimoTiempo > timeout)) {
+                && !(System.currentTimeMillis() - tiempoInicial > timeout)) {
             Slice s = slicesStack.pop();
 
             if (s.getLevel() < numSlices) {
@@ -101,6 +105,12 @@ public class PizzaCutter {
 
             imprimeMaximo(maxArea, numSlices);
         }
+
+        System.out.println("PizzaCutter Finished!");
+        StringBuilder sb = new StringBuilder();
+        sb.append("Time: ").append((System.currentTimeMillis() - tiempoInicial) / 1000).append(" s, MaxAreaFound: ").append(maxArea)
+                .append(", CuttedArea:").append(cuttedArea).append(", Actual Level: ").append(numSlices).append(" Stack:");
+        System.out.println(sb.toString());
 
         if (bestStack == null) {
             // SIN SOLUCION!!!!
@@ -216,10 +226,12 @@ public class PizzaCutter {
     }
 
     private void cutSlice(Pizza pizza, Slice slice) {
+        pizza.setCuttedCells(pizza.getCuttedCells() + (slice.getRows() * slice.getColumns()));
         setReserved(pizza, slice, true);
     }
 
     private void undoSlice(Pizza pizza, Slice slice) {
+        pizza.setCuttedCells(pizza.getCuttedCells() - (slice.getRows() * slice.getColumns()));
         setReserved(pizza, slice, false);
     }
 
@@ -231,12 +243,27 @@ public class PizzaCutter {
                 teorical.addAll(getSlicesFromFactors(pizza, factors, level));
             }
 
-            Collections.sort(teorical);
-            System.out.println("Slices Teoricos:");
+            System.out.println("Posible Slices:");
+
+            if ((pizza.getColumns() * pizza.getRows()) < 50) {
+                Collections.sort(teorical, Collections.reverseOrder());
+            } else {
+                Collections.sort(teorical);
+            }
 
             for (Slice s : teorical) {
                 System.out.println(s);
             }
+        }
+        cuttedArea = (float) pizza.getCuttedCells() / ((pizza.getColumns() * pizza.getRows()));
+
+        if (!reverse && (cuttedArea > 0.6f || (pizza.getColumns() * pizza.getRows()) < 50)) {
+            Collections.sort(teorical, Collections.reverseOrder());
+            reverse = true;
+        }
+        if (cuttedArea < 0.6f && reverse) {
+            Collections.sort(teorical);
+            reverse = false;
         }
 
         List<Slice> possible = new ArrayList<>();
