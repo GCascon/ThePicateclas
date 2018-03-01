@@ -110,7 +110,7 @@ public class Slice implements Comparable {
         return (s.getRows() * s.getColumns()) - (this.getRows() * this.getColumns());
 
         // Slower to Bigger
-        // return (s.getRows()*s.getColumns())-(this.getRows()*this.getColumns());
+        // return (this.getRows()*this.getColumns())-(s.getRows()*s.getColumns());
     }
 
     @Override
