@@ -15,9 +15,13 @@ public class PlanificadorTest {
 
     @Test
     public void exampleTest() throws IOException {
-        Main.main(new String[] { "a_example.in" });
-        File output = new File("a_example.out");
-        Assert.assertTrue(output.exists());
+        try {
+            Main.main(new String[] { "a_example.in" });
+            File output = new File("a_example.out");
+            Assert.assertTrue(output.exists());
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
