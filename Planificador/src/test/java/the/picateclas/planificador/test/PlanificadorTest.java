@@ -26,9 +26,13 @@ public class PlanificadorTest {
 
     @Test
     public void shouldBeEasy() throws IOException {
-        Main.main(new String[] { "b_should_be_easy.in" });
-        File output = new File("b_should_be_easy.out");
-        Assert.assertTrue(output.exists());
+        try {
+            Main.main(new String[] { "b_should_be_easy.in" });
+            File output = new File("b_should_be_easy.out");
+            Assert.assertTrue(output.exists());
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     @Test

@@ -65,13 +65,13 @@ public class Planificador {
 
         Collections.sort(rides);
 
-        System.out.println("Score Maximo Teorico=" + scoreMaximo+" Rutas="+numRides+" Coches="+numCars);
-        /*for (Ride r : rides) {
-            System.out.println("Ruta:" + r);
-        }*/
+        System.out.println("Score Maximo Teorico=" + scoreMaximo + " Rutas=" + numRides + " Coches=" + numCars);
+        /*
+         * for (Ride r : rides) { System.out.println("Ruta:" + r); }
+         */
 
     }
-    
+
     long tiempoInicial = System.currentTimeMillis();
 
     long ultimoTiempo = System.currentTimeMillis();
@@ -81,10 +81,8 @@ public class Planificador {
         if (tiempoActual - ultimoTiempo > 10000) {
             ultimoTiempo = System.currentTimeMillis();
             StringBuilder sb = new StringBuilder();
-            sb.append("Time: ").append((tiempoActual - tiempoInicial) / 1000)
-            	.append(" s, MaxScoreFound: ").append(maxScore)
-                .append(", Actual Level: ").append(level)
-                .append(", Plan actual: ").append(pActual);
+            sb.append("Time: ").append((tiempoActual - tiempoInicial) / 1000).append(" s, MaxScoreFound: ").append(maxScore)
+                    .append(", Actual Level: ").append(level).append(", Plan actual: ").append(pActual);
             System.out.println(sb.toString());
         }
     }
@@ -95,9 +93,8 @@ public class Planificador {
         int scoreConseguido = 0;
         int level = 0;
 
-        int timeout=300000;
-        while (!planStack.isEmpty() && scoreConseguido < scoreMaximo 
-        		&& !(System.currentTimeMillis() - tiempoInicial > timeout)) {
+        int timeout = 300000;
+        while (!planStack.isEmpty() && scoreConseguido < scoreMaximo && !(System.currentTimeMillis() - tiempoInicial > timeout)) {
             Plan pActual = planStack.pop();
 
             if (pActual.level < level) {
@@ -107,9 +104,9 @@ public class Planificador {
                 }
                 level = pActual.level;
             }
-            //System.out.println("Level: " + level + " #### Plan: " + pActual);
-            //System.out.println("resultStack: " + resultStack);
-            imprimeMaximo(level,scoreConseguido,pActual);
+            // System.out.println("Level: " + level + " #### Plan: " + pActual);
+            // System.out.println("resultStack: " + resultStack);
+            imprimeMaximo(level, scoreConseguido, pActual);
 
             resultStack.push(pActual);
             level++;
@@ -194,37 +191,48 @@ public class Planificador {
 
         List<Plan> planList = new ArrayList<>();
         if (previousPlan == null) {
-            List<List<Ride>> permRides = permutaciones(numCars, rides);
+
+            List<Ride> alcanzables = new ArrayList<>();
+            for (Ride r : rides) {
+                int timeToGetRoute = Math.abs(0 - r.getR1()) + Math.abs(0 - r.getC1());
+                int timeToDoRoute = Math.abs(r.getR2() - r.getR1()) + Math.abs(r.getC2() - r.getC1());
+
+                if (timeToGetRoute + timeToDoRoute <= r.getTfin()) {
+                    alcanzables.add(r);
+                }
+            }
+            System.out.println("Rutas al alcance: " + alcanzables.size());
+
+            List<List<Ride>> permRides = permutaciones(numCars, alcanzables);
             for (List<Ride> ridesPlan : permRides) {
                 List<Car> carsPlan = new ArrayList<>();
                 List<Integer> ridesScores = new ArrayList<>();
                 int planScore = 0;
                 int desplazamientos = 0;
-                
-                for (int c = 0; c < numCars; c++) {                    
-                	int timeToGetRoute=Math.abs(0 - ridesPlan.get(c).getR1()) + Math.abs(0 - ridesPlan.get(c).getC1());
+
+                for (int c = 0; c < numCars; c++) {
+                    int timeToGetRoute = Math.abs(0 - ridesPlan.get(c).getR1()) + Math.abs(0 - ridesPlan.get(c).getC1());
                     desplazamientos += timeToGetRoute;
 
-                    int time = timeToGetRoute
-                            + Math.abs(ridesPlan.get(c).getR2() - ridesPlan.get(c).getR1())
+                    int time = timeToGetRoute + Math.abs(ridesPlan.get(c).getR2() - ridesPlan.get(c).getR1())
                             + Math.abs(ridesPlan.get(c).getC2() - ridesPlan.get(c).getC1());
 
                     int score = Math.abs(ridesPlan.get(c).getR2() - ridesPlan.get(c).getR1())
                             + Math.abs(ridesPlan.get(c).getC2() - ridesPlan.get(c).getC1());
 
                     if (ridesPlan.get(c).getTini() >= timeToGetRoute) {
-                    	score += bonus;
-                    	if (ridesPlan.get(c).getTini() > timeToGetRoute) {
-                    		time+=(ridesPlan.get(c).getTini() - timeToGetRoute);//Penalizacion por empezar antes
-                    	}
+                        score += bonus;
+                        if (ridesPlan.get(c).getTini() > timeToGetRoute) {
+                            time += (ridesPlan.get(c).getTini() - timeToGetRoute);// Penalizacion por empezar antes
+                        }
                     }
-                    
+
                     ridesScores.add(score);
                     planScore += score;
                     carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), time));
                 }
                 planList.add(new Plan(carsPlan, ridesPlan, ridesScores, 0, planScore, desplazamientos));
-                
+
             }
         } else {
             List<Ride> pendientes = new ArrayList<>();
@@ -233,15 +241,36 @@ public class Planificador {
                     pendientes.add(r);
                 }
             }
-            if (pendientes.size() < numCars) {
-                // Rellenar con -1
-                int vacios = numCars - pendientes.size();
-                for (int i = 0; i < vacios; i++) {
-                    pendientes.add(new Ride(-1, 0, 0, 0, 0, 0, 0));// Ride Ficticio
+
+            HashMap<Integer, Ride> mapAlcanzables = new HashMap<>();
+            for (int c = 0; c < numCars; c++) {
+                for (Ride r : pendientes) {
+                    int timeToGetRoute = Math.abs(previousPlan.getCars().get(c).getRc() - r.getR1())
+                            + Math.abs(previousPlan.getCars().get(c).getCc() - r.getC1());
+
+                    int timeToDoRoute = previousPlan.getCars().get(c).getTimeToBeFree() + timeToGetRoute + Math.abs(r.getR2() - r.getR1())
+                            + Math.abs(r.getC2() - r.getC1());
+
+                    if (timeToDoRoute <= r.getTfin()) {
+                        if (!mapAlcanzables.containsKey(r.getRideId())) {
+                            mapAlcanzables.put(r.getRideId(), r);
+                        }
+                    }
                 }
             }
 
-            List<List<Ride>> permRides = permutacionesRep(numCars, pendientes);
+            List<Ride> alcanzables = new ArrayList(mapAlcanzables.values());
+            // System.out.println("Rutas al alcance: " + alcanzables.size());
+
+            if (pendientes.size() < numCars) {
+                // Rellenar con -1
+                int vacios = numCars - alcanzables.size();
+                for (int i = 0; i < vacios; i++) {
+                    alcanzables.add(new Ride(-1, 0, 0, 0, 0, 0, 0));// Ride Ficticio
+                }
+            }
+
+            List<List<Ride>> permRides = permutacionesRep(numCars, alcanzables);
             for (List<Ride> ridesPlan : permRides) {
                 List<Car> carsPlan = new ArrayList<>();
                 List<Integer> ridesScores = new ArrayList<>();
@@ -251,31 +280,32 @@ public class Planificador {
                 boolean noPoints = false;
                 for (int c = 0; c < numCars; c++) {
                     if (ridesPlan.get(c).getRideId() != -1) {// Si el coche tiene ruta asignada...
-                    	int timeToGetRoute=Math.abs(previousPlan.getCars().get(c).getRc() - ridesPlan.get(c).getR1())
+                        int timeToGetRoute = Math.abs(previousPlan.getCars().get(c).getRc() - ridesPlan.get(c).getR1())
                                 + Math.abs(previousPlan.getCars().get(c).getCc() - ridesPlan.get(c).getC1());
                         desplazamientos += timeToGetRoute;
-                    	
-                        int time = previousPlan.getCars().get(c).getTimeToBeFree()
-                        		+timeToGetRoute
+
+                        int time = previousPlan.getCars().get(c).getTimeToBeFree() + timeToGetRoute
                                 + Math.abs(ridesPlan.get(c).getR2() - ridesPlan.get(c).getR1())
                                 + Math.abs(ridesPlan.get(c).getC2() - ridesPlan.get(c).getC1());
 
                         int score = Math.abs(ridesPlan.get(c).getR2() - ridesPlan.get(c).getR1())
                                 + Math.abs(ridesPlan.get(c).getC2() - ridesPlan.get(c).getC1());
 
-                        
-                        if (previousPlan.getCars().get(c).getTimeToBeFree()+timeToGetRoute <= ridesPlan.get(c).getTini()) {
+                        if (previousPlan.getCars().get(c).getTimeToBeFree() + timeToGetRoute <= ridesPlan.get(c).getTini()) {
                             // Bonus
                             score += bonus;
-                            if (previousPlan.getCars().get(c).getTimeToBeFree()+timeToGetRoute < ridesPlan.get(c).getTini()) {
-                            	time += ridesPlan.get(c).getTini()-(previousPlan.getCars().get(c).getTimeToBeFree()+timeToGetRoute);//Penalizacion por empezar antes
+                            if (previousPlan.getCars().get(c).getTimeToBeFree() + timeToGetRoute < ridesPlan.get(c).getTini()) {
+                                time += ridesPlan.get(c).getTini() - (previousPlan.getCars().get(c).getTimeToBeFree() + timeToGetRoute);// Penalizacion
+                                                                                                                                        // por
+                                                                                                                                        // empezar
+                                                                                                                                        // antes
                             }
-                        }                        
+                        }
                         ridesScores.add(score);
                         planScore += score;
                         carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), time));
 
-                        //TODO REVISAR!!!!! 
+                        // TODO REVISAR!!!!!
                         if (time > ridesPlan.get(c).getTfin() || time > steps) {
                             noPoints = true;
                         }
@@ -293,9 +323,9 @@ public class Planificador {
         }
 
         Collections.sort(planList);
-        /*for (Plan p : planList) {
-            System.out.println(p);
-        }*/
+        /*
+         * for (Plan p : planList) { System.out.println(p); }
+         */
 
         return planList;
     }
@@ -329,7 +359,7 @@ public class Planificador {
             StringBuilder sb = new StringBuilder();
             int tam = ridesToPrint.size();
             sb.append(tam);
-            for (int j = tam-1; j >=0; j--) {
+            for (int j = tam - 1; j >= 0; j--) {
                 sb.append(" ");
                 sb.append(ridesToPrint.get(j).getRideId());
             }
