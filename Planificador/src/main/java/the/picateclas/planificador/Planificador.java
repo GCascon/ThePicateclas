@@ -158,6 +158,9 @@ public class Planificador {
                     pm.add(lista.get(j + i));
                 }
                 permutada.add(pm);
+                if (permutada.size() > 3 * n) {
+                    return permutada;
+                } // Reducir exploracion....
             }
         }
         return permutada;
@@ -174,6 +177,9 @@ public class Planificador {
                         pn.add(lista.get(j + i));
                     }
                     permutada.add(pn);
+                    if (permutada.size() > 3 * n) {
+                        return permutada;
+                    } // Reducir exploracion....
                 }
             }
         }
