@@ -76,14 +76,15 @@ public class Planificador {
 
     long ultimoTiempo = System.currentTimeMillis();
 
-    void imprimeMaximo(int level, int maxScore) {
+    void imprimeMaximo(int level, int maxScore, Plan pActual) {
         long tiempoActual = System.currentTimeMillis();
         if (tiempoActual - ultimoTiempo > 10000) {
             ultimoTiempo = System.currentTimeMillis();
             StringBuilder sb = new StringBuilder();
             sb.append("Time: ").append((tiempoActual - tiempoInicial) / 1000)
             	.append(" s, MaxScoreFound: ").append(maxScore)
-                .append(", Actual Level: ").append(level);
+                .append(", Actual Level: ").append(level)
+                .append(", Plan actual: ").append(pActual);
             System.out.println(sb.toString());
         }
     }
@@ -94,7 +95,9 @@ public class Planificador {
         int scoreConseguido = 0;
         int level = 0;
 
-        while (!planStack.isEmpty() && scoreConseguido < scoreMaximo) {
+        int timeout=300000;
+        while (!planStack.isEmpty() && scoreConseguido < scoreMaximo 
+        		&& !(System.currentTimeMillis() - tiempoInicial > timeout)) {
             Plan pActual = planStack.pop();
 
             if (pActual.level < level) {
@@ -106,7 +109,7 @@ public class Planificador {
             }
             //System.out.println("Level: " + level + " #### Plan: " + pActual);
             //System.out.println("resultStack: " + resultStack);
-            imprimeMaximo(level,scoreConseguido);
+            imprimeMaximo(level,scoreConseguido,pActual);
 
             resultStack.push(pActual);
             level++;
@@ -272,8 +275,8 @@ public class Planificador {
                         planScore += score;
                         carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), time));
 
-                        if (previousPlan.getCars().get(c).getTimeToBeFree() < ridesPlan.get(c).getTini()
-                                || time > ridesPlan.get(c).getTfin() || time > steps) {
+                        //TODO REVISAR!!!!! 
+                        if (time > ridesPlan.get(c).getTfin() || time > steps) {
                             noPoints = true;
                         }
 
