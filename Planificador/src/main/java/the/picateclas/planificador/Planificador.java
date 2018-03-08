@@ -262,7 +262,7 @@ public class Planificador {
             List<Ride> alcanzables = new ArrayList(mapAlcanzables.values());
             // System.out.println("Rutas al alcance: " + alcanzables.size());
 
-            if (pendientes.size() < numCars) {
+            if (alcanzables.size() < numCars) {
                 // Rellenar con -1
                 int vacios = numCars - alcanzables.size();
                 for (int i = 0; i < vacios; i++) {
