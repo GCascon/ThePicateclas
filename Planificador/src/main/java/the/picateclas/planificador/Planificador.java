@@ -88,7 +88,7 @@ public class Planificador {
     }
 
     public List<Plan> calculatePlanList() {
-        int timeout = 30000;
+        int timeout = 60000;
 
         List<Plan> possibilities = calculatePossibilities(null);
         planStack.addAll(possibilities);
@@ -260,7 +260,9 @@ public class Planificador {
                     desplazamientos += timeToGetRoute;
 
                 }
-                planList.add(new Plan(carsPlan, ridesPlan, ridesScores, 0, planScore, desplazamientos));
+                if (planScore > 0) {
+                    planList.add(new Plan(carsPlan, ridesPlan, ridesScores, 0, planScore, desplazamientos));
+                }
 
             }
         } else {// XXXXXXXXXXXXXXXXXXXXXXXXX LEVEL MAYOR QUE 0 XXXXXXXXXXXXXXXXXXXXXXXXX
@@ -348,8 +350,9 @@ public class Planificador {
                         ridesScores.add(0);// Valor Simbolico
                     }
                 }
-
-                planList.add(new Plan(carsPlan, ridesPlan, ridesScores, previousPlan.getLevel() + 1, planScore, desplazamientos));
+                if (planScore > 0) {
+                    planList.add(new Plan(carsPlan, ridesPlan, ridesScores, previousPlan.getLevel() + 1, planScore, desplazamientos));
+                }
 
             }
 
