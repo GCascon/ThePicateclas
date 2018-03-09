@@ -74,7 +74,7 @@ public class Planificador {
 
     long tiempoInicial = System.currentTimeMillis();
 
-    long ultimoTiempo = System.currentTimeMillis();
+    long ultimoTiempo = System.currentTimeMillis();// Tiempo para impresiones cada 10 sec.
 
     void imprimeMaximo(int level, int maxScore, Plan pActual) {
         long tiempoActual = System.currentTimeMillis();
@@ -88,7 +88,7 @@ public class Planificador {
     }
 
     public List<Plan> calculatePlanList() {
-        int timeout = 40000;
+        int timeout = 30000;
 
         List<Plan> possibilities = calculatePossibilities(null);
         planStack.addAll(possibilities);
@@ -227,7 +227,6 @@ public class Planificador {
 
                 for (int c = 0; c < numCars; c++) {
                     int timeToGetRoute = ridesPlan.get(c).getR1() + ridesPlan.get(c).getC1();
-                    desplazamientos += timeToGetRoute;
 
                     int time = timeToGetRoute + Math.abs(ridesPlan.get(c).getR2() - ridesPlan.get(c).getR1())
                             + Math.abs(ridesPlan.get(c).getC2() - ridesPlan.get(c).getC1());
@@ -242,9 +241,21 @@ public class Planificador {
                         }
                     }
 
-                    ridesScores.add(score);
+                    // Si NO VOY A LLEGAR a tiempo no hago la ruta
+                    if (time > ridesPlan.get(c).getTfin() || time > steps) {
+                        score = 0;
+                        timeToGetRoute = 0;
+                        ridesScores.add(score);// Este coche no me da puntos...
+                        ridesPlan.set(c, new Ride(-1, 0, 0, 0, 0, 0, 0));// Ruta vacia. No hace ruta
+                        carsPlan.add(new Car(c, 0, 0, 0));// Valor Simbolico
+                    } else {
+                        // Si LLEGO A TIEMPO tomo la ruta
+                        ridesScores.add(score);
+                        carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), time));
+                    }
                     planScore += score;
-                    carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), time));
+                    desplazamientos += timeToGetRoute;
+
                 }
                 planList.add(new Plan(carsPlan, ridesPlan, ridesScores, 0, planScore, desplazamientos));
 
@@ -296,7 +307,6 @@ public class Planificador {
                     if (ridesPlan.get(c).getRideId() != -1) {// Si el coche tiene ruta asignada...
                         int timeToGetRoute = Math.abs(previousPlan.getCars().get(c).getRc() - ridesPlan.get(c).getR1())
                                 + Math.abs(previousPlan.getCars().get(c).getCc() - ridesPlan.get(c).getC1());
-                        desplazamientos += timeToGetRoute;
 
                         int time = previousPlan.getCars().get(c).getTimeToBeFree() + timeToGetRoute
                                 + Math.abs(ridesPlan.get(c).getR2() - ridesPlan.get(c).getR1())
@@ -309,10 +319,8 @@ public class Planificador {
                             // Bonus
                             score += bonus;
                             if (previousPlan.getCars().get(c).getTimeToBeFree() + timeToGetRoute < ridesPlan.get(c).getTini()) {
-                                time += ridesPlan.get(c).getTini() - (previousPlan.getCars().get(c).getTimeToBeFree() + timeToGetRoute);// Penalizacion
-                                                                                                                                        // por
-                                                                                                                                        // empezar
-                                                                                                                                        // antes
+                                // Penalizacion por empezar antes de tiempo
+                                time += ridesPlan.get(c).getTini() - (previousPlan.getCars().get(c).getTimeToBeFree() + timeToGetRoute);
                             }
                         }
 
@@ -320,14 +328,17 @@ public class Planificador {
                         if (time > ridesPlan.get(c).getTfin() || time > steps) {
                             score = 0;
                             ridesScores.add(score);// Este coche no me da puntos...
+                            timeToGetRoute = 0;// Si no la voy a hacer tampoco penaliza desplazamiento
                             ridesPlan.set(c, new Ride(-1, 0, 0, 0, 0, 0, 0));// Ruta vacia. No hace ruta
-                            carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), 0));// Valor Simbolico
+                            // Me quedo donde estaba
+                            carsPlan.add(new Car(c, previousPlan.getCars().get(c).getRc(), previousPlan.getCars().get(c).getCc(), 0));
                         } else {
                             // Si LLEGO A TIEMPO tomo la ruta
                             ridesScores.add(score);
                             carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), time));
                         }
                         planScore += score;
+                        desplazamientos += timeToGetRoute;
 
                     } else {
                         carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), 0));// Valor Simbolico
@@ -353,6 +364,7 @@ public class Planificador {
         ArrayList<String> lineas = new ArrayList<>();
         int totalScore = 0;
         HashMap<Integer, List<Ride>> mapCarRides = new HashMap<>();
+        // HashMap<Integer, List<Ride>> mapGlobalRides = new HashMap<>();
         for (Plan p : planList) {
             for (int i = 0; i < p.getCars().size(); i++) {
                 if (!mapCarRides.containsKey(p.getCars().get(i).getId())) {
