@@ -100,7 +100,7 @@ public class Planificador {
 
             if (pActual.level < level) {
                 int eliminados = level - pActual.level;
-                for (int i = 0; i < eliminados; i++) {
+                for (int i = 0; i <= eliminados; i++) {
                     checkRides(resultStack.pop(), false);
                 }
                 level = pActual.level;
@@ -127,6 +127,7 @@ public class Planificador {
                 if (scoreActual > scoreConseguido) {
                     scoreConseguido = scoreActual;
                     solution = new ArrayList<>(resultStack);
+                    return solution;// QUITAR!!!!!
                 }
             }
         }
@@ -357,6 +358,13 @@ public class Planificador {
          * for (Plan p : planList) { System.out.println(p); }
          */
 
+        /*
+         * int limite = planList.size(); if (limite > 200) { System.out.println("Planes posibles=" + limite); limite = 200; }
+         */
+
+        // Me quedo con los 200 mejores planes (Para ahorrar memoria)
+        // return planList.subList(0, limite);
+
         return planList;
     }
 
@@ -364,26 +372,29 @@ public class Planificador {
         ArrayList<String> lineas = new ArrayList<>();
         int totalScore = 0;
         HashMap<Integer, List<Ride>> mapCarRides = new HashMap<>();
-        // HashMap<Integer, List<Ride>> mapGlobalRides = new HashMap<>();
+        HashMap<Integer, Integer> mapGlobalRides = new HashMap<>();
         for (Plan p : planList) {
             for (int i = 0; i < p.getCars().size(); i++) {
-                if (!mapCarRides.containsKey(p.getCars().get(i).getId())) {
-                    List<Ride> carRides = new ArrayList<>();
-                    if (p.getRides().get(i).getRideId() != -1) {
+                if (p.getRides().get(i).getRideId() != -1) {
+                    if (!mapGlobalRides.containsKey(p.getRides().get(i).getRideId())) {
+                        List<Ride> carRides = null;
+                        if (!mapCarRides.containsKey(p.getCars().get(i).getId())) {
+                            carRides = new ArrayList<>();
+                        } else {
+                            carRides = mapCarRides.get(p.getCars().get(i).getId());
+                        }
                         carRides.add(p.getRides().get(i));
+                        mapCarRides.put(p.getCars().get(i).getId(), carRides);
+                        mapGlobalRides.put(p.getRides().get(i).getRideId(), p.getCars().get(i).getId());
+                    } else {
+                        System.out.println("Conflicto en la ruta:" + p.getRides().get(i).getRideId() + " con los coches:"
+                                + p.getCars().get(i).getId() + " y " + mapGlobalRides.get(p.getRides().get(i).getRideId()));
                     }
-                    mapCarRides.put(p.getCars().get(i).getId(), carRides);
-                } else {
-                    List<Ride> carRides = mapCarRides.get(p.getCars().get(i).getId());
-                    if (p.getRides().get(i).getRideId() != -1) {
-                        carRides.add(p.getRides().get(i));
-                    }
-                    mapCarRides.put(p.getCars().get(i).getId(), carRides);
                 }
             }
-
             totalScore += p.getPlanScore();
         }
+        System.out.println("Rutas completadas: " + mapGlobalRides.size());
         System.out.println("Final Score=" + totalScore);
 
         for (List<Ride> ridesToPrint : mapCarRides.values()) {
