@@ -99,10 +99,11 @@ public class Planificador {
             Plan pActual = planStack.pop();
 
             if (pActual.level < level) {
-                int eliminados = level - pActual.level;
-                for (int i = 0; i <= eliminados; i++) {
-                    checkRides(resultStack.pop(), false);
-                }
+                Plan pEliminado;
+                do {
+                    pEliminado = resultStack.pop();
+                } while (pEliminado.level != pActual.level && !resultStack.isEmpty());
+
                 level = pActual.level;
             }
             // System.out.println("Level: " + level + " #### Plan: " + pActual);
@@ -127,7 +128,6 @@ public class Planificador {
                 if (scoreActual > scoreConseguido) {
                     scoreConseguido = scoreActual;
                     solution = new ArrayList<>(resultStack);
-                    return solution;// QUITAR!!!!!
                 }
             }
         }
@@ -206,6 +206,8 @@ public class Planificador {
         }
 
         List<Plan> planList = new ArrayList<>();
+
+        // XXXXXXXXXXXXXXXXXXXXXXXXX LEVEL 0 XXXXXXXXXXXXXXXXXXXXXXXXX
         if (previousPlan == null) {
 
             List<Ride> alcanzables = new ArrayList<>();
@@ -261,7 +263,7 @@ public class Planificador {
                 planList.add(new Plan(carsPlan, ridesPlan, ridesScores, 0, planScore, desplazamientos));
 
             }
-        } else {
+        } else {// XXXXXXXXXXXXXXXXXXXXXXXXX LEVEL MAYOR QUE 0 XXXXXXXXXXXXXXXXXXXXXXXXX
             List<Ride> pendientes = new ArrayList<>();
             for (Ride r : rides) {
                 if (!completedRides.containsKey(r.getRideId())) {
@@ -326,7 +328,7 @@ public class Planificador {
                         }
 
                         // Si NO VOY A LLEGAR a tiempo no hago la ruta
-                        if (time > ridesPlan.get(c).getTfin() || time > steps) {
+                        if (time >= ridesPlan.get(c).getTfin() || time >= steps) {
                             score = 0;
                             ridesScores.add(score);// Este coche no me da puntos...
                             timeToGetRoute = 0;// Si no la voy a hacer tampoco penaliza desplazamiento
