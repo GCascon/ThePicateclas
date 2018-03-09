@@ -88,12 +88,13 @@ public class Planificador {
     }
 
     public List<Plan> calculatePlanList() {
+        int timeout = 40000;
+
         List<Plan> possibilities = calculatePossibilities(null);
         planStack.addAll(possibilities);
         int scoreConseguido = 0;
         int level = 0;
 
-        int timeout = 300000;
         while (!planStack.isEmpty() && scoreConseguido < scoreMaximo && !(System.currentTimeMillis() - tiempoInicial > timeout)) {
             Plan pActual = planStack.pop();
 
@@ -108,19 +109,18 @@ public class Planificador {
             // System.out.println("resultStack: " + resultStack);
             imprimeMaximo(level, scoreConseguido, pActual);
 
-            resultStack.push(pActual);
-            level++;
-            checkRides(pActual, true);
-            List<Plan> nextLevelPlans = calculatePossibilities(pActual);
-            if (nextLevelPlans != null) {
-                for (Plan p : nextLevelPlans) {
-                    planStack.push(p);
+            if (isAllowed(pActual)) {
+                resultStack.push(pActual);
+                level++;
+                checkRides(pActual, true);
+                List<Plan> nextLevelPlans = calculatePossibilities(pActual);
+                if (nextLevelPlans != null) {
+                    for (Plan p : nextLevelPlans) {
+                        planStack.push(p);
+                    }
                 }
-            }
-
-            // Guardar Solucion
-            if (completedRides.size() == numRides) {
-                int scoreActual = 0;
+                // Guardar Solucion
+                int scoreActual = 0;// Score de la pila de solucion actual
                 for (Plan p : resultStack) {
                     scoreActual += p.getPlanScore();
                 }
@@ -134,6 +134,15 @@ public class Planificador {
         System.out.println("Solution found: " + solution);
 
         return solution;
+    }
+
+    private boolean isAllowed(Plan p) {
+        for (Ride r : p.getRides()) {
+            if (completedRides.containsKey(r.getRideId())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void checkRides(Plan p, boolean addRide) {
@@ -158,9 +167,9 @@ public class Planificador {
                     pm.add(lista.get(j + i));
                 }
                 permutada.add(pm);
-                if (permutada.size() > 3 * n) {
-                    return permutada;
-                } // Reducir exploracion....
+                /*
+                 * if (permutada.size() > 3 * n) { return permutada; }
+                 */
             }
         }
         return permutada;
@@ -177,9 +186,9 @@ public class Planificador {
                         pn.add(lista.get(j + i));
                     }
                     permutada.add(pn);
-                    if (permutada.size() > 3 * n) {
-                        return permutada;
-                    } // Reducir exploracion....
+                    /*
+                     * if (permutada.size() > 3 * n) { return permutada; }
+                     */
                 }
             }
         }
@@ -200,7 +209,7 @@ public class Planificador {
 
             List<Ride> alcanzables = new ArrayList<>();
             for (Ride r : rides) {
-                int timeToGetRoute = Math.abs(0 - r.getR1()) + Math.abs(0 - r.getC1());
+                int timeToGetRoute = r.getR1() + r.getC1();
                 int timeToDoRoute = Math.abs(r.getR2() - r.getR1()) + Math.abs(r.getC2() - r.getC1());
 
                 if (timeToGetRoute + timeToDoRoute <= r.getTfin()) {
@@ -217,7 +226,7 @@ public class Planificador {
                 int desplazamientos = 0;
 
                 for (int c = 0; c < numCars; c++) {
-                    int timeToGetRoute = Math.abs(0 - ridesPlan.get(c).getR1()) + Math.abs(0 - ridesPlan.get(c).getC1());
+                    int timeToGetRoute = ridesPlan.get(c).getR1() + ridesPlan.get(c).getC1();
                     desplazamientos += timeToGetRoute;
 
                     int time = timeToGetRoute + Math.abs(ridesPlan.get(c).getR2() - ridesPlan.get(c).getR1())
@@ -282,8 +291,7 @@ public class Planificador {
                 List<Integer> ridesScores = new ArrayList<>();
                 int planScore = 0;
                 int desplazamientos = 0;
-                int maxTimeToBeFree = 0;
-                boolean noPoints = false;
+
                 for (int c = 0; c < numCars; c++) {
                     if (ridesPlan.get(c).getRideId() != -1) {// Si el coche tiene ruta asignada...
                         int timeToGetRoute = Math.abs(previousPlan.getCars().get(c).getRc() - ridesPlan.get(c).getR1())
@@ -307,23 +315,28 @@ public class Planificador {
                                                                                                                                         // antes
                             }
                         }
-                        ridesScores.add(score);
-                        planScore += score;
-                        carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), time));
 
-                        // TODO REVISAR!!!!!
+                        // Si NO VOY A LLEGAR a tiempo no hago la ruta
                         if (time > ridesPlan.get(c).getTfin() || time > steps) {
-                            noPoints = true;
+                            score = 0;
+                            ridesScores.add(score);// Este coche no me da puntos...
+                            ridesPlan.set(c, new Ride(-1, 0, 0, 0, 0, 0, 0));// Ruta vacia. No hace ruta
+                            carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), 0));// Valor Simbolico
+                        } else {
+                            // Si LLEGO A TIEMPO tomo la ruta
+                            ridesScores.add(score);
+                            carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), time));
                         }
+                        planScore += score;
 
                     } else {
                         carsPlan.add(new Car(c, ridesPlan.get(c).getR2(), ridesPlan.get(c).getC2(), 0));// Valor Simbolico
                         ridesScores.add(0);// Valor Simbolico
                     }
                 }
-                if (!noPoints) {
-                    planList.add(new Plan(carsPlan, ridesPlan, ridesScores, previousPlan.getLevel() + 1, planScore, desplazamientos));
-                }
+
+                planList.add(new Plan(carsPlan, ridesPlan, ridesScores, previousPlan.getLevel() + 1, planScore, desplazamientos));
+
             }
 
         }

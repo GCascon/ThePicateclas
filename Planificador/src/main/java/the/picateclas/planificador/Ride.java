@@ -16,8 +16,6 @@ public class Ride implements Comparable {
 
     int tfin;
 
-    boolean completed = false;
-
     public Ride(int rideId, int r1, int c1, int r2, int c2, int tini, int tfin) {
         super();
         this.r1 = r1;
@@ -27,7 +25,6 @@ public class Ride implements Comparable {
         this.tini = tini;
         this.tfin = tfin;
         this.rideId = rideId;
-        this.completed = false;
     }
 
     public int getRideId() {
@@ -86,14 +83,6 @@ public class Ride implements Comparable {
         this.tfin = tfin;
     }
 
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
-
     @Override
     public int compareTo(Object o) {
         Ride s = (Ride) o;
@@ -107,7 +96,7 @@ public class Ride implements Comparable {
     @Override
     public String toString() {
         return "Ride [rideId=" + rideId + ", r1=" + r1 + ", c1=" + c1 + ", r2=" + r2 + ", c2=" + c2 + ", tini=" + tini + ", tfin=" + tfin
-                + ", completed=" + completed + "]";
+                + "]";
     }
 
 }
